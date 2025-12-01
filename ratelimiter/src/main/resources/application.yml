@@ -1,0 +1,6 @@
+server:
+  port: 8080
+
+rate-limiter:
+  limit: 5
+  window: 1m

@@ -1,0 +1,15 @@
+# Build outputs
+ratelimiter/target/
+ratelimiter/.mvn/
+ratelimiter/mvnw
+ratelimiter/mvnw.cmd
+
+# IDE files
+ratelimiter/.idea/
+ratelimiter/.project
+ratelimiter/.classpath
+ratelimiter/.settings/
+ratelimiter/*.iml
+
+# OS noise
+.DS_Store
