@@ -48,6 +48,16 @@ class InMemoryFixedWindowRateLimiterTest {
     }
 
     @Test
+    void deductsMultiplePermitsAtOnce() {
+        RateLimitDecision first = rateLimiter.evaluate("client", 2);
+        RateLimitDecision second = rateLimiter.evaluate("client", 1);
+
+        assertThat(first.allowed()).isTrue();
+        assertThat(first.remaining()).isZero();
+        assertThat(second.allowed()).isFalse();
+    }
+
+    @Test
     void resetsCounterWhenWindowRollsOver() {
         rateLimiter.evaluate("client");
         Clock nextMinuteClock = Clock.fixed(clock.instant().plusSeconds(60), ZoneOffset.UTC);

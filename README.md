@@ -9,7 +9,7 @@ cd "Rate Limitter/RateLimitter/ratelimiter"
 ./mvnw spring-boot:run
 ```
 
-Visit `http://localhost:8080/api/demo?clientId=alice` — the limiter allows five requests per minute (see `src/main/resources/application.yml`). Exceeding the quota returns HTTP 429 along with standard `X-RateLimit-*` headers.
+Visit `http://localhost:8080/api/demo?clientId=alice&cost=2` — the optional `cost` parameter lets a call consume multiple permits at once. The limiter allows five permits per minute (see `src/main/resources/application.yml`). Exceeding the quota returns HTTP 429 along with standard `X-RateLimit-*` headers.
 
 ## Testing
 

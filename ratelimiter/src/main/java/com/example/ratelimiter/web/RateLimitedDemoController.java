@@ -25,8 +25,14 @@ public class RateLimitedDemoController {
     }
 
     @GetMapping("/api/demo")
-    public ResponseEntity<String> demo(@RequestParam(defaultValue = "anonymous") String clientId) {
-        RateLimitDecision decision = rateLimiter.evaluate(clientId);
+    public ResponseEntity<String> demo(
+            @RequestParam(defaultValue = "anonymous") String clientId,
+            @RequestParam(name = "cost", defaultValue = "1") int cost) {
+        if (cost <= 0) {
+            return ResponseEntity.badRequest().body("cost must be greater than zero");
+        }
+
+        RateLimitDecision decision = rateLimiter.evaluate(clientId, cost);
         ResponseEntity.BodyBuilder builder = decision.allowed() ? ResponseEntity.ok() : ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS);
         builder.header("X-RateLimit-Limit", Integer.toString(properties.getLimit()))
                 .header("X-RateLimit-Remaining", Integer.toString(decision.remaining()))
