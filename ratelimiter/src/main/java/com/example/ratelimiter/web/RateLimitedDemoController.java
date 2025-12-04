@@ -33,17 +33,40 @@ public class RateLimitedDemoController {
         }
 
         RateLimitDecision decision = rateLimiter.evaluate(clientId, cost);
-        ResponseEntity.BodyBuilder builder = decision.allowed() ? ResponseEntity.ok() : ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS);
-        builder.header("X-RateLimit-Limit", Integer.toString(properties.getLimit()))
-                .header("X-RateLimit-Remaining", Integer.toString(decision.remaining()))
-                .header("X-RateLimit-Reset", Long.toString(decision.resetAt().getEpochSecond()));
+        ResponseEntity.BodyBuilder builder = decision.allowed()
+                ? ResponseEntity.ok()
+                : ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS);
+        builder = addStandardHeaders(builder, decision);
 
         if (decision.allowed()) {
             return builder.body("Request accepted for client " + clientId);
         }
 
-        long retryAfterSeconds = Math.max(0, decision.resetAt().getEpochSecond() - Instant.now().getEpochSecond());
+        long retryAfterSeconds = secondsUntilReset(decision);
         builder.header("Retry-After", Long.toString(retryAfterSeconds));
         return builder.body("Too many requests. Try again after " + decision.resetAt());
+    }
+
+    @GetMapping("/api/demo/status")
+    public ResponseEntity<RateLimitStatusResponse> status(
+            @RequestParam(defaultValue = "anonymous") String clientId) {
+        RateLimitDecision snapshot = rateLimiter.inspect(clientId);
+        RateLimitStatusResponse response = new RateLimitStatusResponse(clientId, properties.getLimit(),
+                properties.getWindow().toString(), snapshot.remaining(), snapshot.resetAt());
+        ResponseEntity.BodyBuilder builder = addStandardHeaders(ResponseEntity.ok(), snapshot);
+        return builder.body(response);
+    }
+
+    private ResponseEntity.BodyBuilder addStandardHeaders(ResponseEntity.BodyBuilder builder, RateLimitDecision decision) {
+        return builder.header("X-RateLimit-Limit", Integer.toString(properties.getLimit()))
+                .header("X-RateLimit-Remaining", Integer.toString(decision.remaining()))
+                .header("X-RateLimit-Reset", Long.toString(decision.resetAt().getEpochSecond()));
+    }
+
+    private long secondsUntilReset(RateLimitDecision decision) {
+        return Math.max(0, decision.resetAt().getEpochSecond() - Instant.now().getEpochSecond());
+    }
+
+    record RateLimitStatusResponse(String clientId, int limit, String window, int remaining, Instant resetAt) {
     }
 }

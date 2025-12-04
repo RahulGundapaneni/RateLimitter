@@ -11,6 +11,8 @@ cd "Rate Limitter/RateLimitter/ratelimiter"
 
 Visit `http://localhost:8080/api/demo?clientId=alice&cost=2` — the optional `cost` parameter lets a call consume multiple permits at once. The limiter allows five permits per minute (see `src/main/resources/application.yml`). Exceeding the quota returns HTTP 429 along with standard `X-RateLimit-*` headers.
 
+Want to know how many permits you have left without consuming any? Hit `http://localhost:8080/api/demo/status?clientId=alice`. The controller returns a JSON payload with the configured limit, window, remaining permits, and reset timestamp while also echoing the `X-RateLimit-*` headers.
+
 ## Testing
 
 ```bash

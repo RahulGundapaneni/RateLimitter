@@ -67,4 +67,21 @@ class InMemoryFixedWindowRateLimiterTest {
         assertThat(decision.allowed()).isTrue();
         assertThat(decision.remaining()).isEqualTo(1);
     }
+
+    @Test
+    void inspectReturnsSnapshotWithoutConsumingPermits() {
+        RateLimitDecision emptyWindow = rateLimiter.inspect("client");
+        assertThat(emptyWindow.allowed()).isTrue();
+        assertThat(emptyWindow.remaining()).isEqualTo(2);
+
+        rateLimiter.evaluate("client");
+        RateLimitDecision afterOneCall = rateLimiter.inspect("client");
+        assertThat(afterOneCall.allowed()).isTrue();
+        assertThat(afterOneCall.remaining()).isEqualTo(1);
+
+        rateLimiter.evaluate("client");
+        RateLimitDecision exhaustedWindow = rateLimiter.inspect("client");
+        assertThat(exhaustedWindow.allowed()).isFalse();
+        assertThat(exhaustedWindow.remaining()).isZero();
+    }
 }
